@@ -1,0 +1,8 @@
+{
+  "name": "myApp",
+  "app_id": ""
+  "watchPatterns": [
+    "www/js/*",
+    "!www/css/**/*"
+  ]
+}
