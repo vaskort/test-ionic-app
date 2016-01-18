@@ -1,73 +1,84 @@
-// Ionic Starter App
+(function(){
+  var app = angular.module('myreddit', ['ionic', 'angularMoment']);
 
-// angular.module is a global place for creating, registering and retrieving Angular modules
-// 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
-// the 2nd parameter is an array of 'requires'
-// 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers'])
+  app.controller('RedditCtrl', function($http, $scope){
+    $scope.stories = [];
+    $scope.myInput = [];
 
-.run(function($ionicPlatform) {
-  $ionicPlatform.ready(function() {
-    // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-    // for form inputs)
-    if (window.cordova && window.cordova.plugins.Keyboard) {
-      cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
-      cordova.plugins.Keyboard.disableScroll(true);
+    function loadStories(params, callback) {
+      var typeOfStory = $scope.myInput.kindofstory;
+      if (typeof typeOfStory === 'undefined'){
+        typeOfStory = 'funny';
+      }
+      console.log(typeOfStory,$scope.myInput.kindofstory);
+      $http.get('https://www.reddit.com/r/'+typeOfStory+'/new/.json', {params: params})
+      .success(function(response) {
+        var stories = [];
+          angular.forEach(response.data.children, function(child) {
+            var story = child.data;
+            if (!story.thumbnail || story.thumbnail === 'self' || story.thumbnail === 'default'){
+              story.thumbnail = 'http://www.redditstatic.com/icon.png'
+            }
+            stories.push(child.data)
+          });
+          callback(stories);
+      });
+    }
+
+    $scope.loadOlderStories = function() {
+      var params = {};
+      if ($scope.stories.length > 0) {
+        params['after'] = $scope.stories[$scope.stories.length - 1].name;
+      }
+      loadStories(params, function(olderStories) {
+        $scope.stories = $scope.stories.concat(olderStories);
+        $scope.$broadcast('scroll.infiniteScrollComplete');
+      });
 
     }
-    if (window.StatusBar) {
-      // org.apache.cordova.statusbar required
-      StatusBar.styleDefault();
+    $scope.loadNewerStories = function() {
+      var params = {'before':$scope.stories[0].name};
+      loadStories(params, function(newerStories){
+        $scope.stories = newerStories.concat($scope.stories);
+        // Stop the ion-refresher from spinning
+        $scope.$broadcast('scroll.refreshComplete');
+      });
     }
+
+    $scope.change = function() {
+      var params = {};
+      stories = [];
+      loadStories(params, function(changeStories){
+        $scope.stories = changeStories;
+        // Stop the ion-refresher from spinning
+        $scope.$broadcast('scroll.refreshComplete');
+      });
+    };
+
+    $scope.openLink = function(url) {
+      window.open(url, '_blank');
+    };
+
   });
-})
 
-.config(function($stateProvider, $urlRouterProvider) {
-  $stateProvider
+  app.run(function($ionicPlatform) {
+    $ionicPlatform.ready(function() {
+      if(window.cordova && window.cordova.plugins.Keyboard) {
+        // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+        // for form inputs)
+        cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
 
-    .state('app', {
-    url: '/app',
-    abstract: true,
-    templateUrl: 'templates/menu.html',
-    controller: 'AppCtrl'
-  })
-
-  .state('app.search', {
-    url: '/search',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/search.html'
+        // Don't remove this line unless you know what you are doing. It stops the viewport
+        // from snapping when text inputs are focused. Ionic handles this internally for
+        // a much nicer keyboard experience.
+        cordova.plugins.Keyboard.disableScroll(true);
       }
-    }
-  })
-
-  .state('app.browse', {
-      url: '/browse',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/browse.html'
-        }
+      if (window.cordova && window.cordova.InAppBrowser) {
+        window.open = window.cordova.InAppBrowser.open;
       }
-    })
-    .state('app.playlists', {
-      url: '/playlists',
-      views: {
-        'menuContent': {
-          templateUrl: 'templates/playlists.html',
-          controller: 'PlaylistsCtrl'
-        }
+      if(window.StatusBar) {
+        StatusBar.styleDefault();
       }
-    })
-
-  .state('app.single', {
-    url: '/playlists/:playlistId',
-    views: {
-      'menuContent': {
-        templateUrl: 'templates/playlist.html',
-        controller: 'PlaylistCtrl'
-      }
-    }
+    });
   });
-  // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/app/playlists');
-});
+}());

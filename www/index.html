@@ -3,28 +3,53 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-    <title>Test</title>
+    <title></title>
 
-    <!-- <link href="lib/ionic/css/ionic.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet"> -->
+    <link href="lib/ionic/css/ionic.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
 
-    <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above -->
-    <link href="css/ionic.app.css" rel="stylesheet">
-
-
-    <!-- ionic/angularjs js -->
     <script src="lib/ionic/js/ionic.bundle.js"></script>
-
-    <!-- cordova script (this will be a 404 during development) -->
+    <script src="lib/moment/moment.js"></script>
+    <script src="lib/angular-moment/angular-moment.js"></script>
     <script src="cordova.js"></script>
 
-    <!-- your app's js -->
     <script src="js/app.js"></script>
-    <script src="js/controllers.js"></script>
   </head>
+  <body ng-app="myreddit" ng-controller="RedditCtrl">
 
-  <body ng-app="starter">
-    <ion-nav-view>
-    </ion-nav-view>
+    <ion-pane>
+      <ion-header-bar class="bar-positive">
+        <h1 class="title">My reddit</h1>
+      </ion-header-bar>
+      <ion-content>
+        <!-- type of news -->
+        <div class="list">
+          <div class="item item-input-inset">
+            <label class="item-input-wrapper">
+              <input type="text" placeholder="Enter Category" ng-model="myInput.kindofstory">
+            </label>
+            <button class="button button-small" ng-click="change()">
+              Submit
+            </button>
+          </div>
+        </div>
+        <ion-refresher pulling-text="Pull to refresh..." on-refresh="loadNewerStories()">
+        </ion-refresher>
+
+        <div class="list list-inset">
+          <a href="{{story.url}}" ng-click="openUrl(story.url)" class="item item-thumbnail-left" ng-repeat="story in stories" target="_blank">
+            <img ng-src="{{story.thumbnail}}" alt="" ng-if="story.thumbnail.indexOf('http') === 0">
+            <h2 class="story-title">{{story.title}}</h2>
+            <span am-time-ago="story.created_utc" am-preprocess="unix"></span>
+            {{story.domain}}
+          </a>
+        </div>
+        <ion-infinite-scroll on-infinite="loadOlderStories()" distance="1%">
+        </ion-infinite-scroll>
+      </ion-content>
+      <div class="bar bar-footer bar-positive">
+        <div class="title">Footer</div>
+      </div>
+    </ion-pane>
   </body>
 </html>

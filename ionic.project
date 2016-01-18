@@ -1,7 +1,4 @@
 {
-  "name": "myApp",
-  "watchPatterns": [
-    "www/js/*",
-    "!www/css/**/*"
-  ]
+  "name": "my-reddit",
+  "app_id": ""
 }
